@@ -66,7 +66,20 @@ void uv_write_cb(uv_write_t *req, int status) {
   ((sendmsg_cb)req->data)(status);
 }
 
-TcpClient::TcpClient() {}
+TcpClient::TcpClient() : af_(AF_INET), recv_cb_(NULL) {
+  int retval = -1;
+
+  retval = uv_loop_init(&loop);
+  if (0 != retval) goto error;
+
+  retval = uv_tcp_init(&loop, &tcp_cli);
+  if (0 != retval) goto error;
+
+  return;
+error:
+  string err_msg(uv_strerror(retval));
+  throw std::runtime_error(err_msg);
+}
 
 TcpClient::TcpClient(const char *host, int port) : recv_cb_(NULL) {
   int retval = -1;
